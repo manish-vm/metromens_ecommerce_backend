@@ -17,7 +17,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: ['http://localhost:3000', 'https://metromens-ecommerce-frontend.vercel.app'],
-    credentials: true
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"]
   })
 );
 
@@ -42,16 +43,16 @@ app.get('/api/debug/product-counts', async (req, res) => {
 });
 
 // Routes
-app.use('/api/auth', require('./routes/authRoutes'));
-app.use('/api/products', require('./routes/productRoutes'));
-app.use('/api/categories', require('./routes/categoryRoutes'));
-app.use('/api/cart', require('./routes/cartRoutes'));
-app.use('/api/orders', require('./routes/orderRoutes'));
-app.use('/api/admin', require('./routes/adminRoutes'));
-app.use('/api/upload', require('./routes/uploadRoutes'));
+app.use('/api/auth', require('./routes/authRoutes.js'));
+app.use('/api/products', require('./routes/productRoutes.js'));
+app.use('/api/categories', require('./routes/categoryRoutes.js'));
+app.use('/api/cart', require('./routes/cartRoutes.js'));
+app.use('/api/orders', require('./routes/orderRoutes.js'));
+app.use('/api/admin', require('./routes/adminRoutes.js'));
+app.use('/api/upload', require('./routes/uploadRoutes.js'));
 app.use('/api/user', require('./routes/userRoutes.js'));
-app.use('/api/addresses', require('./routes/addressRoutes'));
-app.use('/api/wishlist', require('./routes/wishlistRoutes'));
+app.use('/api/addresses', require('./routes/addressRoutes.js'));
+app.use('/api/wishlist', require('./routes/wishlistRoutes.js'));
 
 // Static uploads (if needed)
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
