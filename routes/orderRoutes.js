@@ -9,7 +9,8 @@ const {
   cancelOrder,
   deleteMyOrder,
   deleteMyOrderHistory,
-  deleteOrder
+  deleteOrder,
+  downloadOrdersExcel
 } = require('../controllers/orderController');
 
 const router = express.Router();
@@ -24,5 +25,6 @@ router.put('/:id/cancel', protect, cancelOrder);
 router.delete('/my/:id', protect, deleteMyOrder);
 router.delete('/my', protect, deleteMyOrderHistory);
 router.delete('/:id', protect, adminOnly, deleteOrder);
+router.get('/download', protect, adminOnly, downloadOrdersExcel);
 
 module.exports = router;

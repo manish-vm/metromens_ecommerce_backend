@@ -5,6 +5,8 @@ const connectDB = require('../config/db');
 const User = require('../models/User');
 const Category = require('../models/Category');
 const Product = require('../models/Product');
+const HeroBanner = require('../models/HeroBanner');
+const ExclusiveBanner = require('../models/ExclusiveBanner');
 
 const seed = async () => {
   try {
@@ -14,7 +16,9 @@ const seed = async () => {
     await Promise.all([
       User.deleteMany(),
       Category.deleteMany(),
-      Product.deleteMany()
+      Product.deleteMany(),
+      HeroBanner.deleteMany(),
+      ExclusiveBanner.deleteMany()
     ]);
 
     console.log('Creating admin user...');
@@ -469,6 +473,99 @@ const seed = async () => {
 
     console.log(`Creating ${products.length} products...`);
     await Product.insertMany(products);
+
+    console.log('Seeding hero banners...');
+    const heroBannersData = [
+      {
+        title: 'MetroMensWear',
+        subtitle: 'Fresh fits for metro men – tees you’ll live in.',
+        image: 'https://a.storyblok.com/f/165154/1280x720/9bcbd5f298/01_t-shirt-advertisement-strategies-header.jpg/m/',
+        ctaPrimaryLabel: 'Shop Now',
+        ctaPrimaryLink: '/products',
+        ctaSecondaryLabel: 'Learn More',
+        ctaSecondaryLink: '/about',
+        order: 1,
+        isActive: true
+      },
+      {
+        title: 'Premium Quality',
+        subtitle: 'Handcrafted with care for the modern gentleman',
+        image: 'https://www.truefittandhill.com/cdn/shop/articles/Bearded_model_lifestyle_1024x1024.png?v=1670268041',
+        ctaPrimaryLabel: 'Explore Collection',
+        ctaPrimaryLink: '/products',
+        ctaSecondaryLabel: 'Our Story',
+        ctaSecondaryLink: '/about',
+        order: 2,
+        isActive: true
+      },
+      {
+        title: 'Timeless Elegance',
+        subtitle: 'Classic pieces that never go out of style',
+        image: 'https://www.bewakoof.com/blog/wp-content/uploads/2021/01/Blog-Feature-Banner_Shirts-Every-Man-Should-Own.jpg',
+        ctaPrimaryLabel: 'View Catalog',
+        ctaPrimaryLink: '/products',
+        ctaSecondaryLabel: 'Contact Us',
+        ctaSecondaryLink: '/contact',
+        order: 3,
+        isActive: true
+      }
+    ];
+
+    await HeroBanner.insertMany(heroBannersData);
+
+    console.log('Seeding exclusive banners...');
+    const exclusiveBannersData = [
+      {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/menswear-fashion-suits-advertisement-design-template-2812cdd0ac83993cdc36013874e57e8f_screen.jpg?ts=1637027425',
+        link: '/products?bestseller=true',
+        order: 1,
+        isActive: true
+      },
+      {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://i.pinimg.com/736x/c3/a3/ee/c3a3ee024527c90d35d3a8d7def887a4.jpg',
+        link: '/products?isNewArrival=true',
+        order: 2,
+        isActive: true
+      },
+      {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://i.pinimg.com/736x/af/eb/a8/afeba81b52250d2165772cd0e090c411.jpg',
+        link: '/products?trending=true',
+        order: 3,
+        isActive: true
+      },
+      {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://i.pinimg.com/236x/ee/c8/5f/eec85f89d360b41e587a680ae18f51ee.jpg',
+        link: '/products?bestseller=true',
+        order: 4,
+        isActive: true
+      },
+       {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://d1csarkz8obe9u.cloudfront.net/posterpreviews/men%27s-fashion-design-template-76d21ea7e1c5b8f6704372ad4379f407_screen.jpg?ts=1758870717',
+        link: '/products?isNewArrival=true',
+        order: 5,
+        isActive: true
+      },
+       {
+        title: 'Title here',
+        subtitle: 'Subtitle here',
+        image: 'https://templates.simplified.co/thumb/4b4eb011-8d15-4da1-902a-dc0c776cbd86.jpg',
+        link: '/products?isNewArrival=true',
+        order: 5,
+        isActive: true
+      }
+    ];
+
+    await ExclusiveBanner.insertMany(exclusiveBannersData);
 
     console.log('✅ Seed complete!');
     console.log('Login with: admin@metromenswear.com / Admin@123');

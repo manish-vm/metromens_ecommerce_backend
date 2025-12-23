@@ -4,7 +4,7 @@ const Product = require('../models/Product');
 const Category = require('../models/Category');
 
 // --------------------------------------
-// GET ALL PRODUCTS (with filters)
+// GET ALL PRODUCTS (with filters and pagination)
 // --------------------------------------
 const getProducts = asyncHandler(async (req, res) => {
   const {
@@ -13,7 +13,7 @@ const getProducts = asyncHandler(async (req, res) => {
     new: isNew,
     bestseller,
     trending,
-    search
+    search,
   } = req.query;
 
   const filter = {};
@@ -24,7 +24,7 @@ const getProducts = asyncHandler(async (req, res) => {
     const cat = await Category.findOne({ slug });
 
     if (!cat) {
-      return res.json([]); // avoid 500 crash
+      return res.json({ products: [], totalPages: 0, currentPage: 1 }); // avoid 500 crash
     }
 
     filter.category = cat._id;
@@ -34,8 +34,16 @@ const getProducts = asyncHandler(async (req, res) => {
 
   // Convert string 'true' to boolean check
   if (isNew === 'true') filter.isNewArrival = true;
-  if (bestseller === 'true') filter.isBestSeller = true;
-  if (trending === 'true') filter.isTrending = true;
+  if (bestseller === 'true') {
+    filter.isBestSeller = true;
+    filter.isTrending = false;
+    filter.isNewArrival = false;
+  }
+  if (trending === 'true') {
+    filter.isTrending = true;
+    filter.isBestSeller = false;
+    filter.isNewArrival = false;
+  }
 
   // search filter (case-insensitive, match any substring)
   if (search) {
@@ -45,13 +53,18 @@ const getProducts = asyncHandler(async (req, res) => {
   // Debug log
   console.log('Product filter:', filter);
 
+  const totalProducts = await Product.countDocuments(filter);
+
   const products = await Product.find(filter)
     .populate('category')
     .sort({ createdAt: -1 });
 
   console.log('Products found:', products.length);
 
-  res.json(products);
+  res.json({
+    products,
+    totalProducts
+  });
 });
 
 // --------------------------------------

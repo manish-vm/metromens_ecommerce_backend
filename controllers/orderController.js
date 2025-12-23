@@ -2,6 +2,7 @@ const asyncHandler = require('express-async-handler');
 const Order = require('../models/Order');
 const Cart = require('../models/Cart');
 const User = require('../models/User');
+const ExcelJS = require('exceljs');
 
 const createOrder = asyncHandler(async (req, res) => {
   // 1. Fetch User to get default address
@@ -13,7 +14,7 @@ const createOrder = asyncHandler(async (req, res) => {
   }
 
   // If client provided an addressId, prefer that. Otherwise use default or first address
-  const { addressId } = req.body || {};
+  const { addressId, paymentMethod = 'COD' } = req.body || {};
   let selectedAddr = null;
 
   if (addressId) {
@@ -48,7 +49,7 @@ const createOrder = asyncHandler(async (req, res) => {
   }));
 
   const itemsPrice = orderItems.reduce((sum, i) => sum + i.qty * i.price, 0);
-  const shippingPrice = itemsPrice > 999 ? 0 : 99;
+  const shippingPrice = itemsPrice > 999 ? 0 : 50;
   const taxPrice = Math.round(itemsPrice * 0.05);
   const totalPrice = itemsPrice + shippingPrice + taxPrice;
 
@@ -75,13 +76,14 @@ const createOrder = asyncHandler(async (req, res) => {
     user: req.user._id,
     orderItems,
     shippingAddress,
-    paymentMethod: 'COD', // Defaulting to COD for now as requested "Order Now"
+    paymentMethod,
     itemsPrice,
     shippingPrice,
     taxPrice,
     totalPrice,
     orderId,
-    status: 'Placed'
+    status: 'Placed',
+    isPaid: paymentMethod === 'UPI' // Simulate UPI payment as paid
   });
 
   await Cart.findOneAndDelete({ user: req.user._id });
@@ -100,7 +102,34 @@ const getMyOrders = asyncHandler(async (req, res) => {
 });
 
 const getAllOrders = asyncHandler(async (req, res) => {
-  const orders = await Order.find().populate('user', 'name email');
+  const { search, date, month } = req.query;
+  let filter = {};
+
+  if (search) {
+    filter = {
+      $or: [
+        { orderId: { $regex: search, $options: 'i' } },
+        { 'user.name': { $regex: search, $options: 'i' } },
+        { 'user.email': { $regex: search, $options: 'i' } }
+      ]
+    };
+  }
+
+  if (date) {
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+    filter.createdAt = { $gte: startDate, $lt: endDate };
+  }
+
+  if (month) {
+    const [year, monthNum] = month.split('-');
+    const startMonth = new Date(year, monthNum - 1, 1);
+    const endMonth = new Date(year, monthNum, 1);
+    filter.createdAt = { $gte: startMonth, $lt: endMonth };
+  }
+
+  const orders = await Order.find(filter).populate('user', 'name email');
   res.json(orders);
 });
 
@@ -238,10 +267,76 @@ const trackOrder = asyncHandler(async (req, res) => {
       image: it.image
     })),
     shippingAddress: order.shippingAddress,
+    itemsPrice: order.itemsPrice,
+    shippingPrice: order.shippingPrice,
+    taxPrice: order.taxPrice,
+    totalPrice: order.totalPrice,
     user: order.user ? { name: order.user.name, email: order.user.email } : null
   });
 });
 
+
+const downloadOrdersExcel = asyncHandler(async (req, res) => {
+  const { search, date, month } = req.query;
+  let filter = {};
+
+  if (search) {
+    filter = {
+      $or: [
+        { orderId: { $regex: search, $options: 'i' } },
+        { 'user.name': { $regex: search, $options: 'i' } },
+        { 'user.email': { $regex: search, $options: 'i' } }
+      ]
+    };
+  }
+
+  if (date) {
+    const startDate = new Date(date);
+    const endDate = new Date(date);
+    endDate.setDate(endDate.getDate() + 1);
+    filter.createdAt = { $gte: startDate, $lt: endDate };
+  }
+
+  if (month) {
+    const [year, monthNum] = month.split('-');
+    const startMonth = new Date(year, monthNum - 1, 1);
+    const endMonth = new Date(year, monthNum, 1);
+    filter.createdAt = { $gte: startMonth, $lt: endMonth };
+  }
+
+  const orders = await Order.find(filter).populate('user', 'name email');
+
+  const workbook = new ExcelJS.Workbook();
+  const worksheet = workbook.addWorksheet('Orders');
+
+  worksheet.columns = [
+    { header: 'Order ID', key: 'orderId', width: 20 },
+    { header: 'User Email', key: 'userEmail', width: 30 },
+    { header: 'Total Price', key: 'totalPrice', width: 15 },
+    { header: 'Paid', key: 'isPaid', width: 10 },
+    { header: 'Status', key: 'status', width: 15 },
+    { header: 'Placed At', key: 'createdAt', width: 20 },
+    { header: 'Cancel Reason', key: 'cancelReason', width: 20 }
+  ];
+
+  orders.forEach(order => {
+    worksheet.addRow({
+      orderId: order.orderId,
+      userEmail: order.user?.email || '',
+      totalPrice: order.totalPrice,
+      isPaid: order.isPaid ? 'Yes' : 'No',
+      status: order.status,
+      createdAt: new Date(order.createdAt).toLocaleString(),
+      cancelReason: order.status === 'Cancelled' ? (order.cancelReason || '') : ''
+    });
+  });
+
+  res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+  res.setHeader('Content-Disposition', 'attachment; filename=orders.xlsx');
+
+  await workbook.xlsx.write(res);
+  res.end();
+});
 
 module.exports = {
   createOrder,
@@ -252,5 +347,6 @@ module.exports = {
   cancelOrder,
   deleteMyOrder,
   deleteMyOrderHistory,
-  deleteOrder
+  deleteOrder,
+  downloadOrdersExcel
 };

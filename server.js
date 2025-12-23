@@ -17,8 +17,7 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      'http://localhost:3000',
-      'https://metromens-ecommerce-frontend.vercel.app'
+      'http://localhost:3000'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
@@ -26,9 +25,6 @@ app.use(
     exposedHeaders: ["set-cookie"]
   })
 );
-
-app.options('*', cors());
-
 
 app.get('/', (req, res) => {
   res.send('MetroMensWear API is running');
@@ -61,6 +57,9 @@ app.use('/api/upload', require('./routes/uploadRoutes.js'));
 app.use('/api/user', require('./routes/userRoutes.js'));
 app.use('/api/addresses', require('./routes/addressRoutes.js'));
 app.use('/api/wishlist', require('./routes/wishlistRoutes.js'));
+app.use('/api/coupons', require('./routes/couponRoutes.js'));
+app.use('/api/exclusive-banners', require('./routes/exclusiveBannerRoutes.js'));
+app.use('/api/hero-banners', require('./routes/heroBannerRoutes.js'));
 
 // Static uploads (if needed)
 app.use('/uploads', express.static(path.join(__dirname, '/uploads')));
@@ -73,5 +72,3 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
-
-
