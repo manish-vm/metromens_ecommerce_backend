@@ -17,7 +17,8 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: [
-      'http://localhost:3000'
+      'http://localhost:3000',
+      'https://metromens-ecommerce-frontend.vercel.app'
     ],
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH'],
     credentials: true,
@@ -72,3 +73,4 @@ const PORT = process.env.PORT || 5000;
 app.listen(PORT, () =>
   console.log(`Server running in ${process.env.NODE_ENV} mode on port ${PORT}`)
 );
+
