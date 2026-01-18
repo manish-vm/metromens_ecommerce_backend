@@ -17,13 +17,14 @@ const registerUser = asyncHandler(async (req, res) => {
   }
 
   const user = await User.create({ name, email, password, phone });
-  generateToken(res, user._id, user.isAdmin);
+  const token = generateToken(res, user._id, user.isAdmin);
 
   res.status(201).json({
     _id: user._id,
     name: user.name,
     email: user.email,
-    isAdmin: user.isAdmin
+    isAdmin: user.isAdmin,
+    token
   });
 });
 
@@ -33,12 +34,13 @@ const authUser = asyncHandler(async (req, res) => {
   const user = await User.findOne({ email });
 
   if (user && (await user.matchPassword(password))) {
-    generateToken(res, user._id, user.isAdmin);
+    const token = generateToken(res, user._id, user.isAdmin);
     res.json({
       _id: user._id,
       name: user.name,
       email: user.email,
-      isAdmin: user.isAdmin
+      isAdmin: user.isAdmin,
+      token
     });
   } else {
     res.status(401);
@@ -69,13 +71,14 @@ const googleLogin = asyncHandler(async (req, res) => {
     });
   }
 
-  generateToken(res, user._id, user.isAdmin);
+  const token = generateToken(res, user._id, user.isAdmin);
 
   res.json({
     _id: user._id,
     name: user.name,
     email: user.email,
-    isAdmin: user.isAdmin
+    isAdmin: user.isAdmin,
+    token
   });
 });
 
@@ -109,12 +112,13 @@ const verifyPhoneOtp = asyncHandler(async (req, res) => {
     });
   }
 
-  generateToken(res, user._id, user.isAdmin);
+  const token = generateToken(res, user._id, user.isAdmin);
   res.json({
     _id: user._id,
     name: user.name,
     email: user.email,
-    isAdmin: user.isAdmin
+    isAdmin: user.isAdmin,
+    token
   });
 });
 
